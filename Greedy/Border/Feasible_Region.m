@@ -11,31 +11,30 @@ function area = Feasible_Region(s1,s2,a,N)
 if length(s1)~=2 || length(s2)~=2
     error('Input Error !');
 end
+
 center=(s1+s2)/2;           % 中心点
 c=Euclidean_Dis(s1,s2)/2;   % 焦距的一半
 if c>=a
     error('Parameter Error!');
 end
 b=sqrt(a^2-c^2);            % 短轴的一半
-area=zeros(N,2);
+tmp=s2-s1;
+theta=atan(tmp(2)/tmp(1));
+% 旋转矩阵
+R=[cos(theta),-sin(theta);...
+   sin(theta),cos(theta)];
 
-% 椭圆内随机取点
-rand('state',sum(clock))
-t=2*pi * rand(N-2,1);
-d = sqrt(rand(N-2,1));
-x = center(1) + a * d .* cos(t);
-y = center(2) + b * d .* sin(t);
+% 单位圆内采样
+rand('state',sum(clock));
+circle_rnd=rand(N,2);
+small=min(circle_rnd,[],2);
+large=max(circle_rnd,[],2);
+angle=2*pi*(small./large);
+circle_rnd=large.*[cos(angle),sin(angle)];
 
-% 保证每次可以取到长轴上的两个顶点
-x=[x;center(1)+a;center(1)-a];
-y=[y;center(2);center(2)];
+% 单位圆 -> 椭圆
+L=diag([a,b]);
+area=circle_rnd*L*R'+center;
 
-% 旋转
-tan_value=(s2(2)-s1(2))/(s2(1)-s1(1));
-angle=atan(tan_value);
-for i=1:N
-    area(i,1)=(x(i)-center(1))*cos(angle)-(y(i)-center(2))*sin(angle)+center(1);
-    area(i,2)=(x(i)-center(1))*sin(angle)+(y(i)-center(2))*cos(angle)+center(2);
-end
 end
 
